@@ -1,12 +1,14 @@
 ARG VERSION
 FROM debian:${VERSION}
 
-LABEL org.label-schema.name="debian" \
-    org.label-schema.vendor="Wener" \
-    org.label-schema.description="Debian with China mirror" \
-    org.label-schema.url="https://github.com/wenerme/dockerfiles" \
-    org.label-schema.vcs-url="https://github.com/wenerme/dockerfiles" \
-    org.label-schema.license="MIT"
+MAINTAINER wener
+
+#LABEL org.label-schema.name="debian" \
+#    org.label-schema.vendor="Wener" \
+#    org.label-schema.description="Debian with China mirror" \
+#    org.label-schema.url="https://github.com/wenerme/dockerfiles" \
+#    org.label-schema.vcs-url="https://github.com/wenerme/dockerfiles" \
+#    org.label-schema.license="MIT"
 
 #ENV DEBIAN_CODENAME=bookworm
 #ENV DEBIAN_MIRROR=http://mirrors.aliyun.com
@@ -23,5 +25,11 @@ LABEL org.label-schema.name="debian" \
 RUN apt update && apt upgrade -y && \
     apt install -y \
     wget curl \
-    ca-certificates util-linux tree file nano htop procps \
+    ca-certificates  \
+    file  \
+    htop  \
+    nano  \
+    procps \
+    tree  \
+    util-linux  \
     && rm -rf /var/lib/apt/lists/*

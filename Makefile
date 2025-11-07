@@ -30,3 +30,10 @@ pub:
 
 prepare:
 	apk add make
+
+docker:
+	mkdir -p .docker
+	ln -fs ~/.docker/buildx/ .docker/buildx
+	ln -fs ~/.docker/contexts/ .docker/contexts
+	ln -fs ~/.docker/cli-plugins/ .docker/cli-plugins
+	DOCKER_CONFIG=$(PWD)/.docker docker buildx use multiarch-builder
