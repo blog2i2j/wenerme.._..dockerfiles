@@ -27,3 +27,4 @@ ignored
 *ignored*
 local.mk
 local.just
+.docker/

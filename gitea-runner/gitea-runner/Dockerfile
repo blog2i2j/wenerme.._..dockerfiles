@@ -5,7 +5,10 @@ FROM gitea/act_runner:$VERSION AS builder
 
 FROM wener/builder:${ALPINE_RELEASE}
 
+RUN apk add --no-cache tini bash git tzdata
 COPY --from=builder /usr/local/bin/act_runner /usr/local/bin/act_runner
-COPY --from=builder /opt/act/run.sh /opt/act/run.sh
+COPY --from=builder /usr/local/bin/run.sh /usr/local/bin/run.sh
 
-ENTRYPOINT ["/sbin/tini","--","/opt/act/run.sh"]
+VOLUME /data
+
+ENTRYPOINT ["/sbin/tini","--","run.sh"]
