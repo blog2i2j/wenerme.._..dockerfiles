@@ -1,7 +1,7 @@
 ARG ALPINE_RELEASE
 FROM wener/base:${ALPINE_RELEASE}
 
-RUN apk --no-cache add nginx nginx-mod-stream && \
+RUN apk --no-cache add nginx nginx-mod-stream nginx-mod-http-acme && \
     chown -R nginx:www-data /var/lib/nginx && \
     mkdir -p /run/nginx/
 COPY root /

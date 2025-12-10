@@ -12,9 +12,9 @@ export ALPINE_RELEASE
 
 info:
 	docker buildx bake --print
-build:
+build: dl
 	docker buildx bake
-push:
+push: dl
 	echo Building $(ALPINE_RELEASE)
 	docker buildx bake --push
 
