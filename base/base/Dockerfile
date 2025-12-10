@@ -1,19 +1,9 @@
-FROM alpine AS builder
-ARG ALPINE_VERSION
-ARG ALPINE_MIRROR
-
-# Change the version to upgrade the base image
-RUN mkdir /rootfs && cd /rootfs && \
-    apk -X ${ALPINE_MIRROR}/v${ALPINE_VERSION}/main --allow-untrusted --root /rootfs --initdb add alpine-base
-RUN echo ${ALPINE_MIRROR}/v${ALPINE_VERSION}/main > /rootfs/etc/apk/repositories; \
-    echo ${ALPINE_MIRROR}/v${ALPINE_VERSION}/community >> /rootfs/etc/apk/repositories
-RUN apk add --root /rootfs -U --no-cache curl busybox-extras file nano libc6-compat gcompat bash && \
-    rm /rootfs/var/cache/apk/*
-
 FROM scratch
 
+ARG ALPINE_RELEASE
 ARG ALPINE_VERSION
 ARG ALPINE_MIRROR
+ARG TARGETARCH
 ENV ALPINE_VERSION=${ALPINE_VERSION}
 ENV ALPINE_MIRROR=${ALPINE_MIRROR}
 
@@ -26,7 +16,11 @@ LABEL maintainer="wener@wener.me" \
     org.label-schema.version="${ALPINE_VERSION}" \
     org.label-schema.license="MIT"
 
-COPY --from=builder /rootfs /
+ADD alpine-minirootfs-${ALPINE_RELEASE}-${TARGETARCH}.tar.gz /
+RUN echo ${ALPINE_MIRROR}/v${ALPINE_VERSION}/main > /etc/apk/repositories; \
+    echo ${ALPINE_MIRROR}/v${ALPINE_VERSION}/community >> /etc/apk/repositories; \
+    apk add -U --no-cache busybox-extras curl file nano libc6-compat gcompat bash;
+
 SHELL [ "/bin/bash", "-c"]
 
 COPY rootfs /

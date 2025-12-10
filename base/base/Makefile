@@ -31,3 +31,20 @@ push-latest:
 #info:
 #	@echo $(IMAGE) $(VERSION)
 #	@VERSION=$(VERSION); echo tags: $${VERSION%.*} $${VERSION%.*.*}
+
+dl:
+	@for arch in amd64 arm64 386; do \
+		file="alpine-minirootfs-$(ALPINE_RELEASE)-$$arch.tar.gz"; \
+		case "$$arch" in \
+			amd64) alpine_arch=x86_64 ;; \
+			arm64) alpine_arch=aarch64 ;; \
+			386) alpine_arch=x86 ;; \
+		esac; \
+		url="https://mirrors.aliyun.com/alpine/v$${ALPINE_RELEASE%.*}/releases/$$alpine_arch/alpine-minirootfs-$(ALPINE_RELEASE)-$$alpine_arch.tar.gz"; \
+		if [ -f "$$file" ]; then \
+			echo "Already exists: $$file"; \
+		else \
+			echo "Downloading $$url -> $$file"; \
+			curl -fSL -C- -o "$$file" "$$url"; \
+		fi; \
+	done
