@@ -8,13 +8,14 @@ import? "{{invocation_directory()}}/local.just"
 
 _bake:=path_exists(invocation_directory()+"/docker-bake.hcl")
 
-export ALPINE_RELEASE := env("ALPINE_RELEASE", "3.21.2")
+export ALPINE_RELEASE := env("ALPINE_RELEASE", "3.23.0")
+export ALPINE_VERSION := env("ALPINE_VERSION", "3.23")
 
 [private]
 _default:
   @just --list --justfile {{ justfile() }}
 
-# show info
+# show build info
 [no-cd]
 @info:
   echo "VERSION:         {{ env('VERSION', 'N/A') }}"
@@ -22,9 +23,9 @@ _default:
   echo "ALPINE_VERSION:  $ALPINE_VERSION"
   echo "WORKDIR:         {{ invocation_directory() }}"
   echo "ROOTDIR:         {{ justfile_directory() }}"
-  echo "tags: BAKE={{_bake}}"
+  echo "BAKE:            {{_bake}}"
 
-# update .env
+# update .env with latest Alpine release
 update:
   #!/usr/bin/env node
   import fs from 'fs/promises'
@@ -35,10 +36,24 @@ update:
     ALPINE_VERSION
   }
   console.log(`Update alpine release to ${ALPINE_RELEASE}`)
-  await fs.writeFile('.env', Object.entries(env).map(([k, v]) => `${k}=${v}`).join('\n'))
+  await fs.writeFile('.env', Object.entries(env).map(([k, v]) => `${k}=${v}`).join('\n') + '\n')
 
+# docker buildx bake --push
+[no-cd]
 bake-push *target:
   docker buildx bake --push {{target}}
 
+# docker buildx bake --print
+[no-cd]
 bake-print *target:
   docker buildx bake --print {{target}}
+
+# docker buildx bake --load
+[no-cd]
+bake-load *target:
+  docker buildx bake --load {{target}}
+
+# docker buildx bake (build only)
+[no-cd]
+bake *target:
+  docker buildx bake {{target}}
