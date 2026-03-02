@@ -1,40 +1,101 @@
 # wener/postgres
 
-Drop-in replacement for the [official PostgreSQL Docker image](https://hub.docker.com/_/postgres) with additional extensions pre-installed. Based on `postgres:18-alpine`.
+Drop-in replacement for the [official PostgreSQL Docker image](https://hub.docker.com/_/postgres) with additional
+extensions pre-installed. Based on `postgres:18-alpine`.
+
+```bash
+docker pull wener/postgres:18
+# or
+docker pull quay.io/wener/postgres:18
+```
 
 ## Included Extensions
 
-| Extension | Version | Description |
-| --------- | ------- | ----------- |
-| [pgvector](https://github.com/pgvector/pgvector) | 0.8.2 | Vector similarity search (ivfflat, hnsw) |
-| [pg_cron](https://github.com/citusdata/pg_cron) | 1.6.7 | Cron-based job scheduler |
-| [pg_tle](https://github.com/aws/pg_tle) | 1.5.2 | Trusted Language Extensions framework |
-| [mysql_fdw](https://github.com/EnterpriseDB/mysql_fdw) | 2.9.3 | Foreign data wrapper for MySQL/MariaDB |
+### Core Extensions
 
-All standard contrib extensions (e.g. `pg_stat_statements`, `hstore`, `uuid-ossp`) are also available from the base image.
+| Extension                                                     | Version | Preload | Description                                    |
+|---------------------------------------------------------------|---------|---------|------------------------------------------------|
+| [pgvector](https://github.com/pgvector/pgvector)              | 0.8.2   | No      | Vector similarity search (ivfflat, hnsw)       |
+| [timescaledb](https://github.com/timescale/timescaledb)       | 2.25.2  | Yes     | Time-series data, hypertables, compression     |
+| [pg_cron](https://github.com/citusdata/pg_cron)               | 1.6.7   | Yes     | Cron-based job scheduler                       |
+| [pg_partman](https://github.com/pgpartman/pg_partman)         | 5.4.3   | Yes (bgw) | Automated partition management               |
+| [pgmq](https://github.com/pgmq/pgmq)                         | 1.11.0  | No      | Lightweight message queue (like SQS)           |
+| [pg_tle](https://github.com/aws/pg_tle)                       | 1.5.2   | Yes     | Trusted Language Extensions framework          |
+
+### Monitoring & Audit
+
+| Extension                                                     | Version | Preload | Description                                    |
+|---------------------------------------------------------------|---------|---------|------------------------------------------------|
+| [pg_stat_monitor](https://github.com/percona/pg_stat_monitor) | 2.3.2   | Yes     | Query performance monitoring                   |
+| [pgaudit](https://github.com/pgaudit/pgaudit)                 | 18.0    | Yes     | Session and object audit logging               |
+
+### Networking & HTTP
+
+| Extension                                                     | Version | Preload | Description                                    |
+|---------------------------------------------------------------|---------|---------|------------------------------------------------|
+| [http](https://github.com/pramsey/pgsql-http)                 | 1.7.0   | No      | HTTP client for PostgreSQL                     |
+| [pg_net](https://github.com/supabase/pg_net)                  | 0.20.2  | Yes     | Async HTTP/HTTPS requests from SQL             |
+
+### Foreign Data Wrappers (supabase/wrappers)
+
+| FDW                | Handler                       | Description              |
+|--------------------|-------------------------------|--------------------------|
+| ClickHouse         | `click_house_fdw_handler`     | ClickHouse database      |
+| MySQL              | `mysql_fdw_handler`           | MySQL/MariaDB            |
+| Redis              | `redis_fdw_handler`           | Redis key-value store    |
+| DuckDB             | `duckdb_fdw_handler`          | DuckDB analytics         |
+| S3                 | `s3_fdw_handler`              | S3-compatible storage    |
+| S3 Vectors         | `s3_vectors_fdw_handler`      | S3 vector storage        |
+| Prometheus         | `prometheus_fdw_handler`      | Prometheus metrics       |
+| Tencent CLS        | `tencent_cls_fdw_handler`     | Tencent Cloud Log        |
+
+All FDWs are accessed via `CREATE EXTENSION wrappers;` then `CREATE FOREIGN DATA WRAPPER ... HANDLER <handler> VALIDATOR <validator>;`.
+
+### Security & Utilities
+
+| Extension                                                     | Version | Preload | Description                                    |
+|---------------------------------------------------------------|---------|---------|------------------------------------------------|
+| [pgsodium](https://github.com/michelp/pgsodium)               | 3.1.9   | Yes     | Encryption using libsodium                     |
+| [vault](https://github.com/supabase/vault)                    | 0.3.1   | No      | Encrypted secrets storage (requires pgsodium)  |
+| [pg_hashids](https://github.com/iCyberon/pg_hashids)          | 1.2.1   | No      | Short unique ID generation from integers       |
+| [pg_repack](https://github.com/reorg/pg_repack)               | 1.5.3   | No      | Online table reorganization                    |
+
+### Language & Scripting
+
+| Extension                                                     | Version | Preload | Description                                    |
+|---------------------------------------------------------------|---------|---------|------------------------------------------------|
+| [pljs](https://github.com/pljs/pljs)                          | develop | No      | JavaScript for PostgreSQL via QuickJS          |
+| [pg_wodekit](https://github.com/wenerme/pg_wodekit)           | develop | No      | Custom utility functions (pgrx)                |
+
+### DuckDB Extensions
+
+Pre-built DuckDB extensions for `linux_*_musl` (not available from official repos):
+
+| Extension | Description                     |
+|-----------|---------------------------------|
+| httpfs    | HTTP/S3 file system for DuckDB  |
+
+All standard contrib extensions (e.g. `pg_stat_statements`, `hstore`, `uuid-ossp`, `pgcrypto`) are also available from the base image.
 
 ## Quick Start
 
 ```bash
-docker run --rm -e POSTGRES_PASSWORD=secret -p 5432:5432 wener/postgres:18
-```
-
-Extensions that register background workers (`pg_cron`, `pg_tle`) must be loaded via `shared_preload_libraries`:
-
-```bash
 docker run --rm -e POSTGRES_PASSWORD=secret -p 5432:5432 wener/postgres:18 \
   postgres \
-    -c shared_preload_libraries=pg_cron,pg_tle \
+    -c shared_preload_libraries=timescaledb,pg_cron,pg_tle,pg_net,pgaudit,pg_stat_monitor,pg_partman_bgw \
     -c cron.database_name=postgres
 ```
 
-Then create the extensions inside your database:
+Then create extensions:
 
 ```sql
 CREATE EXTENSION vector;
+CREATE EXTENSION timescaledb;
 CREATE EXTENSION pg_cron;
-CREATE EXTENSION pg_tle;
-CREATE EXTENSION mysql_fdw;
+CREATE EXTENSION pg_partman;
+CREATE EXTENSION pgmq;
+CREATE EXTENSION wrappers;
+-- ...
 ```
 
 ## Docker Compose
@@ -48,7 +109,7 @@ services:
     command:
       - postgres
       - -c
-      - shared_preload_libraries=pg_cron,pg_tle,pg_stat_statements
+      - shared_preload_libraries=timescaledb,pg_cron,pg_tle,pg_net,pgaudit,pg_stat_monitor,pg_partman_bgw
       - -c
       - cron.database_name=postgres
     ports:
@@ -59,75 +120,90 @@ volumes:
   pgdata:
 ```
 
+> **Note:** PG 18+ uses `PGDATA=/var/lib/postgresql/18/docker`. Mount at `/var/lib/postgresql` (not
+> `/var/lib/postgresql/data`) to support `pg_upgrade --link`.
+
+## Extension Notes
+
+### timescaledb
+
+Requires `shared_preload_libraries = 'timescaledb'`. Must be first in the list for best compatibility.
+
+```sql
+CREATE EXTENSION timescaledb;
+CREATE TABLE metrics (
+  time   timestamptz NOT NULL,
+  device text,
+  value  double precision
+);
+SELECT create_hypertable('metrics', by_range('time'));
+```
+
+### pgmq
+
+Lightweight message queue with at-least-once delivery. Optional `pg_partman` integration for partition-based queue management.
+
+```sql
+CREATE EXTENSION pgmq;
+SELECT pgmq.create('my_queue');
+SELECT pgmq.send('my_queue', '{"key": "value"}'::jsonb);
+SELECT * FROM pgmq.read('my_queue', 30, 1);
+```
+
+### pg_partman
+
+Requires `shared_preload_libraries = 'pg_partman_bgw'` for background maintenance.
+
+```sql
+CREATE EXTENSION pg_partman;
+SELECT partman.create_parent('public.events', 'created_at', 'native', 'daily');
+```
+
+### pgsodium & vault
+
+pgsodium auto-generates a root key on first run (`$PGDATA/pgsodium_root.key`).
+
+```sql
+CREATE EXTENSION pgsodium;
+CREATE EXTENSION supabase_vault;  -- requires pgsodium
+```
+
+### supabase wrappers
+
+```sql
+CREATE EXTENSION wrappers;
+CREATE FOREIGN DATA WRAPPER clickhouse_wrapper
+  HANDLER click_house_fdw_handler VALIDATOR click_house_fdw_validator;
+CREATE SERVER clickhouse_svr FOREIGN DATA WRAPPER clickhouse_wrapper
+  OPTIONS (conn_string 'tcp://default:@localhost:9000/default');
+```
+
 ## Compatibility
 
 This image preserves full compatibility with the official `postgres` Alpine image:
 
 - Same entrypoint (`docker-entrypoint.sh`) and initialization flow
-- `/docker-entrypoint-initdb.d/` scripts run at first start (`.sh`, `.sql`, `.sql.gz`, `.sql.xz`, `.sql.zst`)
-- Same environment variables: `POSTGRES_PASSWORD`, `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_INITDB_ARGS`, `POSTGRES_HOST_AUTH_METHOD`
+- `/docker-entrypoint-initdb.d/` scripts run at first start
+- Same environment variables: `POSTGRES_PASSWORD`, `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_INITDB_ARGS`
 - Default data directory: `/var/lib/postgresql/18/docker`
-- `STOPSIGNAL SIGINT` for fast shutdown
-- Mount at `/var/lib/postgresql` is recommended (supports `pg_upgrade --link`)
-
-## Extension Notes
-
-### pgvector
-
-No preloading required. Create the extension and start using vector columns:
-
-```sql
-CREATE EXTENSION vector;
-CREATE TABLE items (id serial PRIMARY KEY, embedding vector(1536));
-CREATE INDEX ON items USING hnsw (embedding vector_cosine_ops);
-```
-
-### pg_cron
-
-Requires `shared_preload_libraries = 'pg_cron'` and `cron.database_name` to be set.
-
-```sql
-CREATE EXTENSION pg_cron;
-SELECT cron.schedule('nightly-vacuum', '0 3 * * *', 'VACUUM ANALYZE');
-SELECT cron.unschedule('nightly-vacuum');
-```
-
-### pg_tle
-
-Requires `shared_preload_libraries = 'pg_tle'`.
-
-```sql
-CREATE EXTENSION pg_tle;
-```
-
-See the [pg_tle documentation](https://github.com/aws/pg_tle) for creating trusted language extensions.
-
-### mysql_fdw
-
-No preloading required.
-
-```sql
-CREATE EXTENSION mysql_fdw;
-CREATE SERVER mysql_svr FOREIGN DATA WRAPPER mysql_fdw
-  OPTIONS (host 'mysql-host', port '3306');
-CREATE USER MAPPING FOR postgres SERVER mysql_svr
-  OPTIONS (username 'remote_user', password 'remote_pass');
-CREATE FOREIGN TABLE remote_table (id int, name text)
-  SERVER mysql_svr OPTIONS (dbname 'mydb', table_name 'users');
-```
 
 ## Build
 
 ```bash
-cd postgres/
-docker buildx bake --load --set '*.platform=linux/arm64'
+# Load for current platform
+make load:postgres
+
+# Push multi-arch
+make push:postgres
+
+# Print build config
+make print
 ```
 
-Extension versions can be overridden via variables in `docker-bake.hcl` or the command line:
+Pin to a specific PostgreSQL version:
 
 ```bash
 docker buildx bake --load \
   --set '*.platform=linux/arm64' \
-  --set '*.args.PGVECTOR_VERSION=0.8.2' \
-  --set '*.args.PG_CRON_VERSION=1.6.7'
+  --set '*.args.PG_VERSION=18'
 ```

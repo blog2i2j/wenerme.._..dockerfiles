@@ -28,3 +28,4 @@ ignored
 local.mk
 local.just
 .docker/
+*.local.md

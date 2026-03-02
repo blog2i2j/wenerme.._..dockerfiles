@@ -48,9 +48,9 @@ push\:%:
 print:
 	$(DOCKER_BUILD_BAKE) --print
 load:
-	$(DOCKER_BUILD_BAKE) --load
+	$(DOCKER_BUILD_BAKE) --set '*.platform=linux/$(shell uname -m)' --load
 load\:%:
-	$(DOCKER_BUILD_BAKE) --load $(*)
+	$(DOCKER_BUILD_BAKE) --set '*.platform=linux/$(shell uname -m)' --load $(*)
 
 .PHONY: build
 build:

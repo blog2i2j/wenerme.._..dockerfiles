@@ -1,46 +1,32 @@
 variable "IMAGE_NAME" {
   default = "mihomo"
 }
-variable "VERSION" { default = "1.17.0" }
+variable "VERSION" { default = "" }
 variable "ALPINE_RELEASE" { default = "" }
-variable "ALPINE_VERSION" { default = "" }
-
+variable "GO_VERSION" { default = "1.25" }
+variable "MIHOMO_REPO" { default = "https://github.com/wenerme/mihomo.git" }
+variable "MIHOMO_BRANCH" { default = "develop" }
+variable "MIHOMO_REV" { default = "" }
 
 group "default" {
-  targets = ["mihomo", "compatible"]
-}
-
-target "base" {
-  dockerfile = "Dockerfile"
-  platforms  = ["linux/amd64", "linux/arm64"]
-  pull       = true
-  args       = {
-    VERSION = VERSION
-    ALPINE_RELEASE = ALPINE_RELEASE
-    ALPINE_VERSION = ALPINE_VERSION
-  }
+  targets = ["mihomo"]
 }
 
 target "mihomo" {
-  inherits = ["base"]
-  context  = "mihomo"
-  tags     = tags("mihomo")
-}
-
-target "compatible" {
-  inherits  = ["base"]
-  context   = "compatible"
-  platforms = ["linux/amd64"]
-  tags      = tags("compatible")
-}
-
-function "tags" {
-  params = [name]
-  result = notequal(IMAGE_NAME, name) ?[
-    "docker.io/wener/${IMAGE_NAME}:${VERSION}-${name}", "quay.io/wener/${IMAGE_NAME}:${VERSION}-${name}",
-    "docker.io/wener/${IMAGE_NAME}:${name}", "quay.io/wener/${IMAGE_NAME}:${name}",
-  ] : [
-    "docker.io/wener/${IMAGE_NAME}:${VERSION}", "quay.io/wener/${IMAGE_NAME}:${VERSION}",
-    "docker.io/wener/${IMAGE_NAME}:latest", "quay.io/wener/${IMAGE_NAME}:latest",
+  dockerfile = "Dockerfile"
+  platforms  = ["linux/amd64", "linux/arm64"]
+  pull       = true
+  args = {
+    ALPINE_RELEASE = ALPINE_RELEASE
+    GO_VERSION     = GO_VERSION
+    MIHOMO_REPO    = MIHOMO_REPO
+    MIHOMO_BRANCH  = MIHOMO_BRANCH
+    MIHOMO_REV     = MIHOMO_REV
+  }
+  tags = [
+    "docker.io/wener/${IMAGE_NAME}:${VERSION}",
+    "docker.io/wener/${IMAGE_NAME}:latest",
+    "quay.io/wener/${IMAGE_NAME}:${VERSION}",
+    "quay.io/wener/${IMAGE_NAME}:latest",
   ]
 }

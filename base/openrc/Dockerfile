@@ -2,7 +2,7 @@ ARG ALPINE_RELEASE
 FROM wener/base:${ALPINE_RELEASE}
 
 # https://github.com/dockage/alpine/blob/main/3.18/Dockerfile
-RUN apk add --no-cache openrc su-exec ca-certificates wait4ports \
+RUN apk add --no-cache openrc busybox-openrc su-exec ca-certificates wait4ports \
     # Disable getty's
     && sed -i 's/^\(tty\d\:\:\)/#\1/g' /etc/inittab \
     && sed -i \

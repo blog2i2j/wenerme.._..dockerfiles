@@ -1,0 +1,11 @@
+#!/bin/sh
+
+echo 'Setup sshd'
+
+cat <<CONF >> /etc/ssh/sshd_config
+AllowAgentForwarding yes
+AllowTcpForwarding yes
+CONF
+
+
+service sshd restart
