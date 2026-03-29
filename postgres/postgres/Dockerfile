@@ -32,7 +32,7 @@ ARG TARGETARCH
 ARG TARGETVARIANT
 ARG WRAPPERS_REPO=https://github.com/wenerme/wrappers.git
 ARG WRAPPERS_BRANCH=develop
-ARG WRAPPERS_REV=1e1a8529f96dd6df84e01618d5bac4224ed89be8
+ARG WRAPPERS_REV=49bdb7baadc796fbfc3fae85c4b7883c3314a04c
 
 RUN --mount=type=cache,id=cargo-registry-$TARGETARCH,target=/root/.cargo/registry \
     --mount=type=cache,id=cargo-git-$TARGETARCH,target=/root/.cargo/git \
@@ -367,3 +367,7 @@ COPY --from=pgsodium        /tmp/install/usr/local/ /usr/local/
 COPY --from=vault           /tmp/install/usr/local/ /usr/local/
 COPY --from=pg_wodekit      /tmp/install/usr/local/ /usr/local/
 COPY --from=duckdb_ext      /tmp/install/duckdb-extensions/ /usr/local/lib/duckdb/extensions/
+
+# pgsodium/vault default config — appended on first initdb run
+RUN printf '#!/bin/sh\necho "pgsodium.getkey_script = '"'"'/usr/local/bin/pgsodium_getkey.sh'"'"'" >> "$PGDATA/postgresql.conf"\necho "vault.getkey_script = '"'"'/usr/local/bin/pgsodium_getkey.sh'"'"'" >> "$PGDATA/postgresql.conf"\n' \
+    > /docker-entrypoint-initdb.d/00-pgsodium.sh && chmod +x /docker-entrypoint-initdb.d/00-pgsodium.sh

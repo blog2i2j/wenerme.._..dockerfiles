@@ -1,7 +1,8 @@
 variable "IMAGE_NAME" { default = "postgres" }
 
-variable "PG_VERSION" { default = "18" }
+variable "PG_VERSION" { default = "18.3" }
 variable "PG_MAJOR" { default = split(".", PG_VERSION)[0] }
+variable "PG_REVISION" { default = "1" }
 
 variable "WRAPPERS_REPO" { default = "https://github.com/wenerme/wrappers.git" }
 variable "WRAPPERS_BRANCH" { default = "develop" }
@@ -16,7 +17,7 @@ variable "PG_NET_VERSION" { default = "0.20.2" }
 variable "PG_REPACK_VERSION" { default = "1.5.3" }
 variable "PG_PARTMAN_VERSION" { default = "5.4.3" }
 variable "PGMQ_VERSION" { default = "1.11.0" }
-variable "TIMESCALEDB_VERSION" { default = "2.25.2" }
+variable "TIMESCALEDB_VERSION" { default = "2.26.0" }
 variable "PLJS_REPO" { default = "https://github.com/wenerme/pljs.git" }
 variable "PLJS_BRANCH" { default = "develop" }
 variable "DUCKDB_VERSION" { default = "v1.4.4" }
@@ -65,5 +66,8 @@ function "tags" {
 
     "docker.io/wener/${IMAGE_NAME}:${notequal("latest", name) ? "${name}-" : ""}${PG_MAJOR}",
     "quay.io/wener/${IMAGE_NAME}:${notequal("latest", name) ? "${name}-" : ""}${PG_MAJOR}",
+
+    "docker.io/wener/${IMAGE_NAME}:${notequal("latest", name) ? "${name}-" : ""}${PG_VERSION}-r${PG_REVISION}",
+    "quay.io/wener/${IMAGE_NAME}:${notequal("latest", name) ? "${name}-" : ""}${PG_VERSION}-r${PG_REVISION}",
   ]
 }

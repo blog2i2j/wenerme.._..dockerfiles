@@ -7,7 +7,7 @@ variable "VERSION_MAJOR" { default = "${split(".", VERSION)[0]}" }
 variable "VERSION_MAJOR_MINOR" { default = "${split(".", VERSION)[0]}.${split(".", VERSION)[1]}" }
 
 group "default" {
-  targets = ["node", "docker", "tsx"]
+  targets = ["node", "docker" ]
 }
 
 target "base" {

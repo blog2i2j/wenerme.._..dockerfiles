@@ -4,7 +4,7 @@ FROM wener/base:${ALPINE_RELEASE}
 ARG TARGETARCH
 ARG TARGETVARIANT
 
-ARG ALPINE_MIRROR=https://mirrors.sjtug.sjtu.edu.cn/alpine
+#ARG ALPINE_MIRROR=https://mirrors.sjtug.sjtu.edu.cn/alpine
 
 RUN echo ${ALPINE_MIRROR}/v${ALPINE_VERSION}/main > /etc/apk/repositories; \
     echo ${ALPINE_MIRROR}/v${ALPINE_VERSION}/community >> /etc/apk/repositories

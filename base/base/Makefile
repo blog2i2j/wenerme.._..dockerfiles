@@ -1,5 +1,5 @@
-#REPO_ROOT ?= $(shell git rev-parse --show-toplevel)
-#-include $(REPO_ROOT)/build.mk
+REPO_ROOT ?= $(shell git rev-parse --show-toplevel)
+-include $(REPO_ROOT)/build.mk
 #
 #CACHE_KEY=$(shell realpath --relative-to $(REPO_ROOT) . | tr / _)
 #
